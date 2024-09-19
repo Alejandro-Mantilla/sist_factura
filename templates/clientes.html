@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Clientes{% endblock %}
+
+{% block content %}
+    <h1>Lista de Clientes</h1>
+    <a href="{{ url_for('nuevo_cliente') }}">Agregar Nuevo Cliente</a>
+    <ul>
+        {% for cliente in clientes %}
+        <li>
+            {{ cliente.nombre }} - {{ cliente.email }} - {{ cliente.telefono }}
+            <a href="{{ url_for('editar_cliente', id=cliente.id) }}">Editar</a>
+            <a href="{{ url_for('eliminar_cliente', id=cliente.id) }}" onclick="return confirm('¿Seguro que deseas eliminar este cliente?');">Eliminar</a>
+        </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

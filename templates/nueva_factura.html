@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Crear Nueva Factura</h1>
+    <form method="post" action="{{ url_for('nueva_factura') }}">
+        <label for="cliente_id">Cliente:</label>
+        <select id="cliente_id" name="cliente_id" required>
+            {% for cliente in clientes %}
+                <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+            {% endfor %}
+        </select>
+        
+        <label for="fecha">Fecha:</label>
+        <input type="date" id="fecha" name="fecha" required>
+        
+        <label for="monto">Monto:</label>
+        <input type="text" id="monto" name="monto" required>
+        
+        <button type="submit">Guardar</button>
+    </form>
+{% endblock %}
