@@ -1,21 +1,61 @@
+<!-- nueva_factura.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Crear Nueva Factura</h1>
-    <form method="post" action="{{ url_for('nueva_factura') }}">
-        <label for="cliente_id">Cliente:</label>
-        <select id="cliente_id" name="cliente_id" required>
-            {% for cliente in clientes %}
-                <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
-            {% endfor %}
-        </select>
-        
+    <h1>Nueva Factura</h1>
+    <form id="facturaForm" action="{{ url_for('nueva_factura') }}" method="POST">
         <label for="fecha">Fecha:</label>
         <input type="date" id="fecha" name="fecha" required>
-        
-        <label for="monto">Monto:</label>
-        <input type="text" id="monto" name="monto" required>
-        
+        <small id="fechaError" style="color:red;"></small>
+
+        <label for="cliente_id">Cliente:</label>
+        <select id="cliente_id" name="cliente_id" required>
+            <option value="">Seleccione un cliente</option>
+            {% for cliente in clientes %}
+            <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
+            {% endfor %}
+        </select>
+        <small id="clienteError" style="color:red;"></small>
+
+        <label for="monto">Monto Total:</label>
+        <input type="number" step="0.01" id="monto" name="monto" required>
+        <small id="montoError" style="color:red;"></small>
+
         <button type="submit">Guardar</button>
     </form>
+
+    <script>
+        document.getElementById('facturaForm').addEventListener('submit', function(event) {
+            // Limpia errores previos
+            document.getElementById('fechaError').textContent = '';
+            document.getElementById('clienteError').textContent = '';
+            document.getElementById('montoError').textContent = '';
+
+            let valid = true;
+
+            // Validaciones de factura
+            const fecha = document.getElementById('fecha').value;
+            const clienteId = document.getElementById('cliente_id').value;
+            const monto = parseFloat(document.getElementById('monto').value);
+
+            if (fecha.trim() === '') {
+                document.getElementById('fechaError').textContent = 'La fecha es obligatoria';
+                valid = false;
+            }
+            if (clienteId === '') {
+                document.getElementById('clienteError').textContent = 'Debe seleccionar un cliente';
+                valid = false;
+            }
+            if (isNaN(monto) || monto <= 0) {
+                document.getElementById('montoError').textContent = 'El monto total debe ser mayor a 0';
+                valid = false;
+            }
+
+            // Si es válido, el formulario se enviará automáticamente
+            if (!valid) {
+                // Si no es válido, prevenir el envío
+                event.preventDefault();
+            }
+        });
+    </script>
 {% endblock %}

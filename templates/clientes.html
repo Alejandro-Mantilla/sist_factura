@@ -30,7 +30,9 @@
         <td>{{ cliente.telefono }}</td>
         <td>
             <a href="{{ url_for('editar_cliente', id=cliente.id) }}">Editar</a>
-            <a href="{{ url_for('eliminar_cliente', id=cliente.id) }}">Eliminar</a>
+            <form action="{{ url_for('eliminar_cliente', id=cliente.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Eliminar</button>
+            </form>
         </td>
     </tr>
     {% endfor %}

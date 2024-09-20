@@ -46,7 +46,9 @@
         <td>{{ factura.monto }}</td>
         <td>
             <a href="{{ url_for('editar_factura', id=factura.id) }}">Editar</a>
-            <a href="{{ url_for('eliminar_factura', id=factura.id) }}">Eliminar</a>
+            <form action="{{ url_for('eliminar_factura', id=factura.id) }}" method="POST" style="display:inline;">
+                <button type="submit">Eliminar</button>
+            </form>
         </td>
     </tr>
     {% endfor %}

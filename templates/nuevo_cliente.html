@@ -1,40 +1,66 @@
+<!-- nuevo_cliente.html -->
 {% extends 'base.html' %}
 
 {% block content %}
     <h1>Nuevo Cliente</h1>
-    <form id="clienteForm" method="post" action="{{ url_for('nuevo_cliente') }}" onsubmit="return validarFormularioCliente();">
+    <form id="clienteForm" action="{{ url_for('nuevo_cliente') }}" method="POST">
         <label for="nombre">Nombre:</label>
         <input type="text" id="nombre" name="nombre" required>
+        <small id="nombreError" style="color:red;"></small>
         
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required>
+        <small id="emailError" style="color:red;"></small>
         
         <label for="telefono">Teléfono:</label>
-        <input type="text" id="telefono" name="telefono" pattern="[0-9]{10}" title="Debe tener 10 dígitos" required>
+        <input type="text" id="telefono" name="telefono" required>
+        <small id="telefonoError" style="color:red;"></small>
         
         <button type="submit">Guardar</button>
     </form>
 
     <script>
-        function validarFormularioCliente() {
+        document.getElementById('clienteForm').addEventListener('submit', function(event) {
+            // Se eliminará el preventDefault aquí, ya que usaremos el método POST del formulario
+            // event.preventDefault();  
+
+            // Limpia errores previos
+            document.getElementById('nombreError').textContent = '';
+            document.getElementById('emailError').textContent = '';
+            document.getElementById('telefonoError').textContent = '';
+
+            let valid = true;
+
+            // Validaciones de cliente
             const nombre = document.getElementById('nombre').value;
             const email = document.getElementById('email').value;
             const telefono = document.getElementById('telefono').value;
 
-            // Validar campos vacíos
-            if (!nombre || !email || !telefono) {
-                alert('Todos los campos son obligatorios');
-                return false;
+            // Validaciones básicas
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const telefonoPattern = /^[0-9]{10}$/;
+
+            if (nombre.trim() === '') {
+                document.getElementById('nombreError').textContent = 'El nombre es obligatorio';
+                valid = false;
+            }
+            if (!emailPattern.test(email)) {
+                document.getElementById('emailError').textContent = 'Por favor, ingrese un email válido';
+                valid = false;
+            }
+            if (!telefonoPattern.test(telefono)) {
+                document.getElementById('telefonoError').textContent = 'El teléfono debe tener 10 dígitos';
+                valid = false;
             }
 
-            // Validar formato del número de teléfono
-            const telefonoRegex = /^[0-9]{10}$/;
-            if (!telefonoRegex.test(telefono)) {
-                alert('El teléfono debe tener 10 dígitos');
-                return false;
+            // Si es válido, el formulario se enviará automáticamente
+            if (valid) {
+                alert('Formulario válido, se enviará ahora');
+                // Aquí no necesitas hacer más, ya que el formulario se enviará con el método POST al ser válido
+            } else {
+                // Si no es válido, prevenir el envío
+                event.preventDefault();
             }
-
-            return true; // Permite el envío del formulario si todo está bien
-        }
+        });
     </script>
 {% endblock %}

@@ -23,9 +23,10 @@ class Factura(db.Model):
     monto = db.Column(db.Float, nullable=False)
     cliente = db.relationship('Cliente', backref=db.backref('facturas', lazy=True))
 
+# Crear todas las tablas de la base de datos
 with app.app_context():
     db.create_all()
-    
+
 # Ruta de Bienvenida
 @app.route('/')
 def bienvenida():
@@ -62,7 +63,9 @@ def nuevo_cliente():
         nuevo_cliente = Cliente(nombre=nombre, email=email, telefono=telefono)
         db.session.add(nuevo_cliente)
         db.session.commit()
+        flash('Cliente agregado correctamente.')
         return redirect(url_for('listar_clientes'))
+    
     return render_template('nuevo_cliente.html')
 
 @app.route('/clientes/editar/<int:id>', methods=['GET', 'POST'])
@@ -85,28 +88,18 @@ def editar_cliente(id):
         cliente.email = email
         cliente.telefono = telefono
         db.session.commit()
+        flash('Cliente actualizado correctamente.')
         return redirect(url_for('listar_clientes'))
+    
     return render_template('editar_cliente.html', cliente=cliente)
 
-@app.route('/clientes/eliminar/<int:id>')
+@app.route('/clientes/eliminar/<int:id>', methods=['POST'])
 def eliminar_cliente(id):
     cliente = Cliente.query.get_or_404(id)
     db.session.delete(cliente)
     db.session.commit()
+    flash('Cliente eliminado correctamente.')
     return redirect(url_for('listar_clientes'))
-
-# Filtro --> Buscar Cliente
-@app.route('/clientes/buscar', methods=['GET'])
-def buscar_clientes():
-    query = request.args.het('q')
-    if query:
-        clientes = Cliente.query.filter(
-            (Cliente.nombre.like(f'%{query}%')) |
-            (Cliente.email.like(f'%{query}%'))
-        ).all()
-    else:
-        clientes = Cliente.query.all()
-    return render_template('clientes.html', clientes=clientes)
 
 # Rutas para Facturas
 @app.route('/facturas', methods=['GET'])
@@ -128,7 +121,7 @@ def listar_facturas():
         query = query.filter(Factura.monto <= float(monto_maximo))
         
     facturas = query.all()
-    clientes = Cliente.query.all() # Filtro para buscar por cliente
+    clientes = Cliente.query.all()  # Filtro para buscar por cliente
     return render_template('facturas.html', facturas=facturas, clientes=clientes)
 
 @app.route('/facturas/nueva', methods=['GET', 'POST'])
@@ -139,14 +132,16 @@ def nueva_factura():
         monto = request.form['monto']
         
         # Validaciones
-        if not monto.replace('.', '', 1).isdigit():
+        if not monto or not monto.replace('.', '', 1).isdigit():
             flash('El monto debe ser un número válido.')
             return redirect(url_for('nueva_factura'))
         
         nueva_factura = Factura(cliente_id=cliente_id, fecha=fecha, monto=float(monto))
         db.session.add(nueva_factura)
         db.session.commit()
+        flash('Factura agregada correctamente.')
         return redirect(url_for('listar_facturas'))
+    
     clientes = Cliente.query.all()
     return render_template('nueva_factura.html', clientes=clientes)
 
@@ -159,7 +154,7 @@ def editar_factura(id):
         monto = request.form['monto']
         
         # Validaciones
-        if not monto.replace('.', '', 1).isdigit():
+        if not monto or not monto.replace('.', '', 1).isdigit():
             flash('El monto debe ser un número válido.')
             return redirect(url_for('editar_factura', id=id))
         
@@ -167,21 +162,33 @@ def editar_factura(id):
         factura.fecha = fecha
         factura.monto = float(monto)
         db.session.commit()
+        flash('Factura actualizada correctamente.')
         return redirect(url_for('listar_facturas'))
+    
     clientes = Cliente.query.all()
     return render_template('editar_factura.html', factura=factura, clientes=clientes)
 
-@app.route('/facturas/eliminar/<int:id>')
+@app.route('/facturas/eliminar/<int:id>', methods=['POST'])
 def eliminar_factura(id):
     factura = Factura.query.get_or_404(id)
     db.session.delete(factura)
     db.session.commit()
+    flash('Factura eliminada correctamente.')
     return redirect(url_for('listar_facturas'))
 
-if __name__ == '__main__':
-    app.run(debug=True)
-    
-# Filtro --> Buscar Factura
+# Filtros de búsqueda
+@app.route('/clientes/buscar', methods=['GET'])
+def buscar_clientes():
+    query = request.args.get('q')
+    if query:
+        clientes = Cliente.query.filter(
+            (Cliente.nombre.like(f'%{query}%')) |
+            (Cliente.email.like(f'%{query}%'))
+        ).all()
+    else:
+        clientes = Cliente.query.all()
+    return render_template('clientes.html', clientes=clientes)
+
 @app.route('/facturas/buscar', methods=['GET'])
 def buscar_facturas():
     fecha = request.args.get('fecha')
@@ -201,5 +208,8 @@ def buscar_facturas():
         query = query.filter(Factura.monto <= float(monto_maximo))
         
     facturas = query.all()
-    clientes = Cliente.query.all() # Filtro por cliente
+    clientes = Cliente.query.all()  # Filtro por cliente
     return render_template('facturas.html', facturas=facturas, clientes=clientes)
+
+if __name__ == '__main__':
+    app.run(debug=True)
