@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin, LoginManager, login_user, login_required, logout_user, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 import io
@@ -10,6 +12,15 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'supersecretkey'
 
 db = SQLAlchemy(app)
+# Inicio de Sesión
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# Definir el modelo de Usuario
+class Usuario(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), nullable=False, unique=True)
+    password = db.Column(db.String(100), nullable=False)
 
 # Definir el modelo de Cliente
 class Cliente(db.Model):
@@ -29,6 +40,52 @@ class Factura(db.Model):
 # Crear todas las tablas de la base de datos
 with app.app_context():
     db.create_all()
+    
+# Ruta de Inicio de Sesión
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuario.query.get(int(user_id))
+
+# Ruta para el registro de nuevo usuario
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        nuevo_usuario = Usuario(username=username, password=hashed_password)
+        
+        db.session.add(nuevo_usuario)
+        db.session.commit()
+        flash('Usuario registrado correctamente')
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+# Ruta para el inicio de sesión
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        usuario = Usuario.query.filter_by(username=username).first()
+
+        if usuario and check_password_hash(usuario.password, password):
+            login_user(usuario)
+            flash('Inicio de sesión exitoso')
+            return redirect(url_for('listar_clientes'))
+        else:
+            flash('Usuario o contraseña incorrectos')
+    return render_template('login.html')
+
+# Ruta para cerrar sesión
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Has cerrado sesión exitosamente')
+    return redirect(url_for('login'))
 
 # Ruta de Bienvenida
 @app.route('/')
@@ -37,6 +94,7 @@ def bienvenida():
 
 # Rutas para Clientes
 @app.route('/clientes', methods=['GET'])
+@login_required
 def listar_clientes():
     query = request.args.get('q')
     if query:
@@ -106,6 +164,7 @@ def eliminar_cliente(id):
 
 # Rutas para Facturas
 @app.route('/facturas', methods=['GET'])
+@login_required
 def listar_facturas():
     fecha = request.args.get('fecha')
     cliente_id = request.args.get('cliente_id')
