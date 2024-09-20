@@ -1,5 +1,8 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_sqlalchemy import SQLAlchemy
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import io
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///facturas.db'
@@ -176,40 +179,30 @@ def eliminar_factura(id):
     flash('Factura eliminada correctamente.')
     return redirect(url_for('listar_facturas'))
 
-# Filtros de búsqueda
-@app.route('/clientes/buscar', methods=['GET'])
-def buscar_clientes():
-    query = request.args.get('q')
-    if query:
-        clientes = Cliente.query.filter(
-            (Cliente.nombre.like(f'%{query}%')) |
-            (Cliente.email.like(f'%{query}%'))
-        ).all()
-    else:
-        clientes = Cliente.query.all()
-    return render_template('clientes.html', clientes=clientes)
+# Ruta para generar reporte de facturas en PDF
+@app.route('/api/invoices/report', methods=['GET'])
+def generate_report():
+    buffer = io.BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    
+    # Título
+    p.drawString(100, 750, "Reporte de Facturas")
+    
+    # Obtener facturas de la base de datos
+    facturas = Factura.query.all()
+    
+    # Generar las líneas para las facturas
+    y = 730
+    for factura in facturas:
+        cliente = Cliente.query.get(factura.cliente_id)
+        p.drawString(100, y, f"Factura #{factura.id} - Cliente: {cliente.nombre} - Fecha: {factura.fecha} - Monto: {factura.monto}")
+        y -= 20  # Ajustar la posición vertical
 
-@app.route('/facturas/buscar', methods=['GET'])
-def buscar_facturas():
-    fecha = request.args.get('fecha')
-    cliente_id = request.args.get('cliente_id')
-    monto_minimo = request.args.get('monto_minimo')
-    monto_maximo = request.args.get('monto_maximo')
-    
-    query = Factura.query
-    
-    if fecha:
-        query = query.filter(Factura.fecha == fecha)
-    if cliente_id:
-        query = query.filter(Factura.cliente_id == cliente_id)
-    if monto_minimo:
-        query = query.filter(Factura.monto >= float(monto_minimo))
-    if monto_maximo:
-        query = query.filter(Factura.monto <= float(monto_maximo))
-        
-    facturas = query.all()
-    clientes = Cliente.query.all()  # Filtro por cliente
-    return render_template('facturas.html', facturas=facturas, clientes=clientes)
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name='reporte_facturas.pdf', mimetype='application/pdf')
 
 if __name__ == '__main__':
     app.run(debug=True)
