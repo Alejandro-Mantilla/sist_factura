@@ -1,17 +1,54 @@
 {% extends 'base.html' %}
 
-{% block title %}Lista de Facturas{% endblock %}
-
 {% block content %}
-    <h1>Lista de Facturas</h1>
-    <a href="{{ url_for('nueva_factura') }}">Agregar Nueva Factura</a>
-    <ul>
-        {% for factura in facturas %}
-        <li>
-            Cliente: {{ factura.cliente.nombre }} - Fecha: {{ factura.fecha }} - Monto: {{ factura.monto }}
-            <a href="{{ url_for('editar_factura', id=factura.id) }}">Editar</a>
-            <a href="{{ url_for('eliminar_factura', id=factura.id) }}" onclick="return confirm('¿Seguro que deseas eliminar esta factura?');">Eliminar</a>
-        </li>
+<h1>Lista de Facturas</h1>
+
+<!-- Formulario de filtrado -->
+<form method="get" action="{{ url_for('listar_facturas') }}">
+    <label for="fecha">Fecha:</label>
+    <input type="date" name="fecha" id="fecha">
+    
+    <label for="cliente_id">Cliente:</label>
+    <select name="cliente_id" id="cliente_id">
+        <option value="">Todos</option>
+        {% for cliente in clientes %}
+        <option value="{{ cliente.id }}">{{ cliente.nombre }}</option>
         {% endfor %}
-    </ul>
+    </select>
+    
+    <label for="monto_minimo">Monto Mínimo:</label>
+    <input type="number" step="0.01" name="monto_minimo" id="monto_minimo">
+    
+    <label for="monto_maximo">Monto Máximo:</label>
+    <input type="number" step="0.01" name="monto_maximo" id="monto_maximo">
+    
+    <button type="submit">Filtrar</button>
+</form>
+
+<!-- Botón para crear nueva factura -->
+<a href="{{ url_for('nueva_factura') }}">
+    <button>Crear Nueva Factura</button>
+</a>
+
+<table>
+    <!-- Encabezados de la tabla -->
+    <tr>
+        <th>Cliente</th>
+        <th>Fecha</th>
+        <th>Monto</th>
+        <th>Acciones</th>
+    </tr>
+    <!-- Mostrar facturas -->
+    {% for factura in facturas %}
+    <tr>
+        <td>{{ factura.cliente.nombre }}</td>
+        <td>{{ factura.fecha }}</td>
+        <td>{{ factura.monto }}</td>
+        <td>
+            <a href="{{ url_for('editar_factura', id=factura.id) }}">Editar</a>
+            <a href="{{ url_for('eliminar_factura', id=factura.id) }}">Eliminar</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

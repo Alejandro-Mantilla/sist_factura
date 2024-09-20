@@ -1,17 +1,38 @@
 {% extends 'base.html' %}
 
-{% block title %}Lista de Clientes{% endblock %}
-
 {% block content %}
-    <h1>Lista de Clientes</h1>
-    <a href="{{ url_for('nuevo_cliente') }}">Agregar Nuevo Cliente</a>
-    <ul>
-        {% for cliente in clientes %}
-        <li>
-            {{ cliente.nombre }} - {{ cliente.email }} - {{ cliente.telefono }}
+<h1>Lista de Clientes</h1>
+
+<!-- Formulario de búsqueda -->
+<form method="get" action="{{ url_for('listar_clientes') }}">
+    <input type="text" name="q" placeholder="Buscar clientes...">
+    <button type="submit">Buscar</button>
+</form>
+
+<!-- Botón para crear nuevo cliente -->
+<a href="{{ url_for('nuevo_cliente') }}">
+    <button>Crear Nuevo Cliente</button>
+</a>
+
+<table>
+    <!-- Encabezados de la tabla -->
+    <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Teléfono</th>
+        <th>Acciones</th>
+    </tr>
+    <!-- Mostrar clientes -->
+    {% for cliente in clientes %}
+    <tr>
+        <td>{{ cliente.nombre }}</td>
+        <td>{{ cliente.email }}</td>
+        <td>{{ cliente.telefono }}</td>
+        <td>
             <a href="{{ url_for('editar_cliente', id=cliente.id) }}">Editar</a>
-            <a href="{{ url_for('eliminar_cliente', id=cliente.id) }}" onclick="return confirm('¿Seguro que deseas eliminar este cliente?');">Eliminar</a>
-        </li>
-        {% endfor %}
-    </ul>
+            <a href="{{ url_for('eliminar_cliente', id=cliente.id) }}">Eliminar</a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
 {% endblock %}

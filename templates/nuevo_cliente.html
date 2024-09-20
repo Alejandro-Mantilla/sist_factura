@@ -2,7 +2,7 @@
 
 {% block content %}
     <h1>Nuevo Cliente</h1>
-    <form method="post" action="{{ url_for('nuevo_cliente') }}">
+    <form id="clienteForm" method="post" action="{{ url_for('nuevo_cliente') }}" onsubmit="return validarFormularioCliente();">
         <label for="nombre">Nombre:</label>
         <input type="text" id="nombre" name="nombre" required>
         
@@ -10,8 +10,31 @@
         <input type="email" id="email" name="email" required>
         
         <label for="telefono">Teléfono:</label>
-        <input type="text" id="telefono" name="telefono" required>
+        <input type="text" id="telefono" name="telefono" pattern="[0-9]{10}" title="Debe tener 10 dígitos" required>
         
         <button type="submit">Guardar</button>
     </form>
+
+    <script>
+        function validarFormularioCliente() {
+            const nombre = document.getElementById('nombre').value;
+            const email = document.getElementById('email').value;
+            const telefono = document.getElementById('telefono').value;
+
+            // Validar campos vacíos
+            if (!nombre || !email || !telefono) {
+                alert('Todos los campos son obligatorios');
+                return false;
+            }
+
+            // Validar formato del número de teléfono
+            const telefonoRegex = /^[0-9]{10}$/;
+            if (!telefonoRegex.test(telefono)) {
+                alert('El teléfono debe tener 10 dígitos');
+                return false;
+            }
+
+            return true; // Permite el envío del formulario si todo está bien
+        }
+    </script>
 {% endblock %}

@@ -5,11 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Mi Aplicación{% endblock %}</title>
     <style>
-        /* Agrega aquí tus estilos CSS */
+        /* Estilos de navegación */
         nav {
             background-color: #333;
             color: #fff;
             padding: 10px;
+            display: flex;
+            justify-content: space-between;
         }
         nav a {
             color: #fff;
@@ -19,18 +21,56 @@
         nav a:hover {
             text-decoration: underline;
         }
+        /* Contenedor para el contenido principal */
         .container {
             padding: 20px;
+        }
+        /* Estilo del menú desplegable para crear nuevos elementos */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #333;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-content a {
+            color: white;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+        .dropdown-content a:hover {
+            background-color: #575757;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
         }
     </style>
 </head>
 <body>
     <nav>
-        <a href="{{ url_for('bienvenida') }}">Inicio</a>
-        <a href="{{ url_for('listar_clientes') }}">Clientes</a>
-        <a href="{{ url_for('listar_facturas') }}">Facturas</a>
-        <!-- Agrega más enlaces aquí -->
+        <div>
+            <a href="{{ url_for('bienvenida') }}">Inicio</a>
+            <a href="{{ url_for('listar_clientes') }}">Clientes</a>
+            <a href="{{ url_for('listar_facturas') }}">Facturas</a>
+        </div>
+        <div>
+            <!-- Menú desplegable para crear nuevos elementos -->
+            <div class="dropdown">
+                <a href="#">Crear Nuevo</a>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('nuevo_cliente') }}">Nuevo Cliente</a>
+                    <a href="{{ url_for('nueva_factura') }}">Nueva Factura</a>
+                </div>
+            </div>
+        </div>
     </nav>
+
     <div class="container">
         {% block content %}
         {% endblock %}

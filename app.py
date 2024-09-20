@@ -32,9 +32,16 @@ def bienvenida():
     return render_template('bienvenida.html')
 
 # Rutas para Clientes
-@app.route('/clientes')
+@app.route('/clientes', methods=['GET'])
 def listar_clientes():
-    clientes = Cliente.query.all()
+    query = request.args.get('q')
+    if query:
+        clientes = Cliente.query.filter(
+            (Cliente.nombre.like(f'%{query}%')) |
+            (Cliente.email.like(f'%{query}%'))
+        ).all()
+    else:
+        clientes = Cliente.query.all()
     return render_template('clientes.html', clientes=clientes)
 
 @app.route('/clientes/nuevo', methods=['GET', 'POST'])
@@ -102,10 +109,27 @@ def buscar_clientes():
     return render_template('clientes.html', clientes=clientes)
 
 # Rutas para Facturas
-@app.route('/facturas')
+@app.route('/facturas', methods=['GET'])
 def listar_facturas():
-    facturas = Factura.query.all()
-    return render_template('facturas.html', facturas=facturas)
+    fecha = request.args.get('fecha')
+    cliente_id = request.args.get('cliente_id')
+    monto_minimo = request.args.get('monto_minimo')
+    monto_maximo = request.args.get('monto_maximo')
+    
+    query = Factura.query
+    
+    if fecha:
+        query = query.filter(Factura.fecha == fecha)
+    if cliente_id:
+        query = query.filter(Factura.cliente_id == cliente_id)
+    if monto_minimo:
+        query = query.filter(Factura.monto >= float(monto_minimo))
+    if monto_maximo:
+        query = query.filter(Factura.monto <= float(monto_maximo))
+        
+    facturas = query.all()
+    clientes = Cliente.query.all() # Filtro para buscar por cliente
+    return render_template('facturas.html', facturas=facturas, clientes=clientes)
 
 @app.route('/facturas/nueva', methods=['GET', 'POST'])
 def nueva_factura():
@@ -156,3 +180,26 @@ def eliminar_factura(id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+    
+# Filtro --> Buscar Factura
+@app.route('/facturas/buscar', methods=['GET'])
+def buscar_facturas():
+    fecha = request.args.get('fecha')
+    cliente_id = request.args.get('cliente_id')
+    monto_minimo = request.args.get('monto_minimo')
+    monto_maximo = request.args.get('monto_maximo')
+    
+    query = Factura.query
+    
+    if fecha:
+        query = query.filter(Factura.fecha == fecha)
+    if cliente_id:
+        query = query.filter(Factura.cliente_id == cliente_id)
+    if monto_minimo:
+        query = query.filter(Factura.monto >= float(monto_minimo))
+    if monto_maximo:
+        query = query.filter(Factura.monto <= float(monto_maximo))
+        
+    facturas = query.all()
+    clientes = Cliente.query.all() # Filtro por cliente
+    return render_template('facturas.html', facturas=facturas, clientes=clientes)
