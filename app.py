@@ -18,7 +18,7 @@ app.secret_key = 'supersecretkey'
 # Configuración de seguridad adicionales
 app.config['SECRET_KEY'] = 'supersecretkey' 
 app.config['SESSION_COOKIE_HTTPONLY'] = True # Protección contra ataques XSS
-app.config['SESSION_COOKIE_SECURE'] = True # Coolies solo disponible vía HTTPS
+app.config['SESSION_COOKIE_SECURE'] = True # Cookies solo disponible vía HTTPS
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # Protege contra ataques CSRF
 app.config['REMEMBER_COOKIE_DURATION'] = timedelta(days=7) 
 
